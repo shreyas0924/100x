@@ -29,21 +29,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = __importStar(require("ws"));
 const http_1 = __importDefault(require("http"));
 const server = http_1.default.createServer(function (request, response) {
-    console.log(new Date() + " Received request for " + request.url);
-    response.end("hi there");
+    console.log(new Date() + ' Received request for ' + request.url);
+    response.end('hi there');
 });
 const wss = new ws_1.WebSocketServer({ server });
-wss.on("connection", function connection(ws) {
-    ws.on("error", console.error);
-    ws.on("message", function message(data, isBinary) {
-        wss.clients.forEach(function each(client) {
-            if (client.readyState === ws_1.default.OPEN) {
-                client.send(data, { binary: isBinary });
+wss.on('connection', (ws) => {
+    console.log('Client connected');
+    ws.on('message', (message) => {
+        // Broadcast received message to all clients
+        wss.clients.forEach((client) => {
+            if (client !== ws && client.readyState === ws_1.default.OPEN) {
+                client.send(message);
             }
         });
+        console.log('Received message from client:' + message);
     });
-    ws.send("Hello! Message From Server!!");
+    ws.on('close', () => {
+        console.log('Client disconnected');
+    });
 });
-server.listen(8080, function () {
-    console.log(new Date() + " Server is listening on port 8080");
+server.listen(4000, function () {
+    console.log(new Date() + ' Server is listening on port 4000');
 });
